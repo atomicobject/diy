@@ -7,6 +7,9 @@ require 'find'
 require 'yaml'
 require 'ostruct'
 
+#require 'rubygems'
+#require 'constructor'
+
 class Test::Unit::TestCase
 	include FileUtils
 

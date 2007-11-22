@@ -1,5 +1,4 @@
 require 'base'
-require 'constructor'
 class Plane < Base
 	constructor :wings, :strict => true
 	def setup

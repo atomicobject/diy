@@ -1,5 +1,4 @@
 
-require 'constructor'
 
 class Thinger
 	constructor :injected

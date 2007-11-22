@@ -1,4 +1,3 @@
-require 'constructor'
 
 class Toy
 	constructor :widget, :trinket, :accessors => true, :strict => true

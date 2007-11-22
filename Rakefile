@@ -15,3 +15,12 @@ Hoe.new('diy', DIY::VERSION) do |p|
   p.test_globs = 'test/*_test.rb'
   p.extra_deps << ['constructor', '>= 1.0.0']
 end
+
+load "../tools/tasks/homepage.rake"
+
+load "../tools/tasks/release_tagging.rake"
+ReleaseTagging.new do |t|
+  t.package = "diy"
+  t.version = DIY::VERSION
+end
+

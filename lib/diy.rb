@@ -21,25 +21,7 @@ module DIY
 				@extra_inputs = extra_inputs
 			end
 
-			# Collect object and subcontext definitions
-			@defs = {}
-			@sub_context_defs = {}
-			context_hash.each do |name,info|
-				name = name.to_s
-				case name
-				when /^\+/ 
-					# subcontext
-					@sub_context_defs[name.gsub(/^\+/,'')] = info
-					
-				else 
-          # Normal singleton object def
-          if extra_inputs_has(name)
-            raise ConstructionError.new(name, "Object definition conflicts with parent context")
-          end
-          @defs[name] = ObjectDef.new(:name => name, :info => info)
-				end
-			end
-
+      collect_object_and_subcontext_defs context_hash
 
 			# init the cache
 			@cache = {}
@@ -108,6 +90,46 @@ module DIY
 
 		private
 
+    def collect_object_and_subcontext_defs(context_hash)
+			@defs = {}
+			@sub_context_defs = {}
+      get_defs_from context_hash
+    end
+
+    def get_defs_from(hash, namespace=nil)
+      hash.each do |name,info|
+        name = name.to_s
+        case name
+        when /^\+/ 
+          # subcontext
+          @sub_context_defs[name.gsub(/^\+/,'')] = info
+          
+        when /^using_namespace/
+          # namespace: use a module(s) prefix for the classname of contained object defs
+          # NOTE: namespacing is NOT scope... it's just a convenient way to setup class names for a group of objects.
+          get_defs_from info, parse_namespace(name)
+
+        else 
+          # Normal object def
+          if extra_inputs_has(name)
+            raise ConstructionError.new(name, "Object definition conflicts with parent context")
+          end
+          if namespace 
+            info ||= {}
+            if info['class']
+              info['class'] = namespace.build_classname(info['class'])
+            else
+              info['class'] = namespace.build_classname(name)
+            end
+          end
+            
+          @defs[name] = ObjectDef.new(:name => name, :info => info)
+
+        end
+      end
+    end
+
+
 		def construct_object(key)
 			# Find the object definition
 			obj_def = @defs[key]
@@ -152,7 +174,33 @@ module DIY
 			end
 			@extra_inputs.keys.member?(key) or @extra_inputs.keys.member?(key.to_sym)
 		end
+
+    def parse_namespace(str)
+      Namespace.new(str)
+    end
 	end
+
+  class Namespace
+    def initialize(str)
+      # 'using_namespace Animal Reptile'
+      parts = str.split(/\s+/)
+      raise "Namespace definitions must begin with 'using_namespace'" unless parts[0] == 'using_namespace'
+      parts.shift
+
+      if parts.length > 0 and parts[0] =~ /::/
+        parts = parts[0].split(/::/)
+      end
+
+      # Ensure module structure exists
+#			parts.inject(Object) { |mod,const_name| mod.const_get(const_name) }
+
+      @module_nest = parts
+    end
+
+    def build_classname(name)
+      [ @module_nest, camelize(name) ].flatten.join("::")
+    end
+  end
 
 	class Lookup #:nodoc:
 		attr_reader :name
@@ -223,15 +271,6 @@ module DIY
       @singleton
     end
 
-		private
-		# Ganked this from Inflector:
-		def camelize(lower_case_and_underscored_word)
-			lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
-		end
-		# Ganked this from Inflector:
-		def underscore(camel_cased_word)
-			camel_cased_word.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
-		end
 	end
 
 	# Exception raised when an object can't be created which is defined in the context.
@@ -246,4 +285,15 @@ module DIY
 			super m
 		end
 	end
+
+  module ::Kernel
+    # Ganked this from Inflector:
+    def camelize(lower_case_and_underscored_word)
+      lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
+    end
+    # Ganked this from Inflector:
+    def underscore(camel_cased_word)
+      camel_cased_word.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
+    end
+  end
 end

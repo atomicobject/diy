@@ -7,35 +7,12 @@ class DIYTest < Test::Unit::TestCase
 
   def setup
     # Add load paths:
-    %w|gnu dog cat yak donkey goat horse fud non_singleton|.each do |p|
+    %w|gnu dog cat yak donkey goat horse fud non_singleton namespace|.each do |p|
       libdir = path_to_test_file(p)
       $: << libdir unless $:.member?(libdir)
     end
   end
 
-  #
-  # HELPERS
-  #
-  def path_to_test_file(fname)
-    path_to("/files/#{fname}")
-  end
-
-  def load_context(file_name)
-    hash = YAML.load(File.read(path_to_test_file(file_name)))
-    load_hash(hash)
-  end
-
-  def load_hash(hash)
-    @diy = DIY::Context.new(hash)
-  end
-
-  def check_dog_objects(context)
-    assert_not_nil context, "nil context"
-    names = %w|dog_presenter dog_model dog_view file_resolver|
-    names.each do |n|
-      assert context.contains_object(n), "Context had no object '#{n}'"
-    end
-  end
 
   #
   # TESTS
@@ -479,4 +456,64 @@ class DIYTest < Test::Unit::TestCase
       assert thread_spinner1.object_id != cat.thread_spinner.object_id, "cat's thread spinner matched the other spinner; should not be so"
     end
   end
+  
+  def test_should_provide_syntax_for_using_namespace
+    # This test exercises single and triple-level namespaces for nested
+    # modules, and their interaction with other namespaced-objects.
+    load_context "namespace/objects.yml"
+
+    %w{road sky cat bird lizard turtle}.each do |obj|
+      assert @diy.contains_object(obj), "Context had no object '#{obj}'"
+    end
+
+    road = @diy['road']
+    sky = @diy['sky']
+    cat = @diy['cat']
+    bird = @diy['bird']
+    lizard = @diy['lizard']
+    turtle = @diy['turtle']
+
+    assert_same road, cat.road, "Cat has wrong Road"
+    assert_same sky, bird.sky, "Bird has wrong Sky"
+    assert_same bird, lizard.bird, "Lizard has wrong Bird"
+  end
+
+  def test_should_combine_a_given_class_name_with_the_namespace
+    load_context "namespace/class_name_combine.yml"
+    assert_not_nil @diy['garfield'], "No garfield"
+    assert_kind_of Animal::Cat, @diy['garfield'], "Garfield wrong"
+  end
+
+  def test_should_raise_for_namespace_w_no_modules_named
+    flunk "implement me"
+  end
+
+  def test_should_raise_for_namespace_whose_modules_dont_exist
+    flunk "implement me"
+  end
+
+  #
+  # HELPERS
+  #
+  def path_to_test_file(fname)
+    path_to("/files/#{fname}")
+  end
+
+  def load_context(file_name)
+    hash = YAML.load(File.read(path_to_test_file(file_name)))
+    load_hash(hash)
+  end
+
+  def load_hash(hash)
+    @diy = DIY::Context.new(hash)
+  end
+
+  def check_dog_objects(context)
+    assert_not_nil context, "nil context"
+    names = %w|dog_presenter dog_model dog_view file_resolver|
+    names.each do |n|
+      assert context.contains_object(n), "Context had no object '#{n}'"
+    end
+  end
+
 end

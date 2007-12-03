@@ -11,6 +11,7 @@ class DIYTest < Test::Unit::TestCase
       libdir = path_to_test_file(p)
       $: << libdir unless $:.member?(libdir)
     end
+    DIY::Context.auto_require = true # Restore default
   end
 
 
@@ -60,6 +61,12 @@ class DIYTest < Test::Unit::TestCase
     # expect it to be loaded from: foo/bar/qux.rb
     @diy.build_everything
     assert_not_nil @diy['thinger'], "Should have got my thinger (which is hiding in a couple modules)"
+  end
+
+  def test_use_class_directly
+    load_hash 'thinger' => {'class' => "DiyTesting::Bar::Foo", 'lib' => 'foo', 'use_class_directly' => true}
+    @diy.build_everything
+    assert_equal DiyTesting::Bar::Foo, @diy['thinger'], "Should be the class 'object'"
   end
 
   def test_classname_inside_a_module_derives_the_namespaced_classname_from_the_underscored_object_def_key
@@ -390,6 +397,14 @@ class DIYTest < Test::Unit::TestCase
 		assert_same thinger, @diy[:thinger]
 	end
 
+	def test_should_be_able_to_turn_off_auto_require_for_all_objects
+	  DIY::Context.auto_require = false
+	  load_context 'horse/objects.yml'
+	  
+	  exception = assert_raise(DIY::ConstructionError) { @diy['holder_thing'] }
+	  assert_match(/uninitialized constant/, exception.message)
+  end
+
   def test_should_cause_non_singletons_to_be_rebuilt_every_time_they_are_accessed
     load_context 'non_singleton/objects.yml'
 
@@ -485,11 +500,19 @@ class DIYTest < Test::Unit::TestCase
   end
 
   def test_should_raise_for_namespace_w_no_modules_named
-    flunk "implement me"
+    ex = assert_raises DIY::NamespaceError do
+      load_context "namespace/no_module_specified.yml"
+    end
+    assert_equal "Namespace needs to indicate a module", ex.message
   end
 
   def test_should_raise_for_namespace_whose_modules_dont_exist
-    flunk "implement me"
+    load_context "namespace/bad_module_specified.yml"
+    ex = assert_raises DIY::ConstructionError do
+      @diy['bird']
+    end
+    assert_match(/failed to construct/i, ex.message)
+    assert_match(/no such file to load -- fuzzy_creature\/bird/, ex.message)
   end
 
   #

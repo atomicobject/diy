@@ -4,6 +4,12 @@ require 'set'
 module DIY
   VERSION = '1.0.0'
 	class Context
+
+    class << self
+      attr_accessor :auto_require
+    end
+    @auto_require = true
+
 		def initialize(context_hash, extra_inputs={})
 			raise "Nil context hash" unless context_hash
 			raise "Need a hash" unless context_hash.kind_of?(Hash)
@@ -111,11 +117,14 @@ module DIY
 
         else 
           # Normal object def
+          info ||= {}
           if extra_inputs_has(name)
             raise ConstructionError.new(name, "Object definition conflicts with parent context")
           end
+          unless info.has_key?('auto_require')
+            info['auto_require'] = self.class.auto_require
+          end
           if namespace 
-            info ||= {}
             if info['class']
               info['class'] = namespace.build_classname(info['class'])
             else
@@ -136,7 +145,7 @@ module DIY
 			raise "No object definition for '#{key}'" unless obj_def
 
 			# If object def mentions a library, load it
-			require obj_def.library if obj_def.library
+      require search_for_file(obj_def.library) if obj_def.library
 
 			# Resolve all components for the object
 			arg_hash = {}
@@ -153,7 +162,9 @@ module DIY
 			# Get a reference to the class for the object
 			big_c = get_class_for_name_with_module_delimeters(obj_def.class_name)
 			# Make and return the instance
-			if arg_hash.keys.size > 0
+      if obj_def.use_class_directly?
+        return big_c
+      elsif arg_hash.keys.size > 0
   			return big_c.new(arg_hash)
 			else
 				return big_c.new
@@ -163,6 +174,15 @@ module DIY
 			cerr.set_backtrace(oops.backtrace)
 			raise cerr
 		end
+
+    def search_for_file(path_suffix)
+      path_suffix = path_suffix + '.rb' unless path_suffix =~ /\.rb$/
+      $LOAD_PATH.each do |root|
+        path = File.join(root, path_suffix)
+        return path if File.file? path
+      end
+      raise ConstructionError, "no such file to load -- #{path_suffix}"
+    end
 
 		def get_class_for_name_with_module_delimeters(class_name)
 			class_name.split(/::/).inject(Object) do |mod,const_name| mod.const_get(const_name) end
@@ -191,6 +211,8 @@ module DIY
         parts = parts[0].split(/::/)
       end
 
+      raise NamespaceError, "Namespace needs to indicate a module" if parts.empty?
+
       # Ensure module structure exists
 #			parts.inject(Object) { |mod,const_name| mod.const_get(const_name) }
 
@@ -198,7 +220,7 @@ module DIY
     end
 
     def build_classname(name)
-      [ @module_nest, camelize(name) ].flatten.join("::")
+      [ @module_nest, Infl.camelize(name) ].flatten.join("::")
     end
   end
 
@@ -226,13 +248,19 @@ module DIY
 			# Class name
 			@class_name = info.delete 'class'
 			@class_name ||= info.delete 'type'
-			@class_name ||= camelize(@name)
+			@class_name ||= Infl.camelize(@name)
+
+      # Auto Require
+      @auto_require = info.delete 'auto_require'
 
 			# Library
 			@library = info.delete 'library'
 			@library ||= info.delete 'lib'
-			@library ||= underscore(@class_name)
+			@library ||= Infl.underscore(@class_name) if @auto_require
 
+			# Use Class Directly
+			@use_class_directly = info.delete 'use_class_directly'
+			
 			# Auto-compose
 			compose = info.delete 'compose'
 			if compose
@@ -271,11 +299,14 @@ module DIY
       @singleton
     end
 
+    def use_class_directly?
+      @use_class_directly == true
+    end
+
 	end
 
-	# Exception raised when an object can't be created which is defined in the context.
-	class ConstructionError < RuntimeError 
-		def initialize(object_name, cause=nil) #:nodoc:
+	class ConstructionError < RuntimeError #:nodoc:#
+		def initialize(object_name, cause=nil)
 			object_name = object_name
 			cause = cause
 			m = "Failed to construct '#{object_name}'"
@@ -286,13 +317,15 @@ module DIY
 		end
 	end
 
-  module ::Kernel
+  class NamespaceError < RuntimeError; end #:nodoc:#
+
+  module Infl #:nodoc:#
     # Ganked this from Inflector:
-    def camelize(lower_case_and_underscored_word)
+    def self.camelize(lower_case_and_underscored_word) 
       lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
     end
     # Ganked this from Inflector:
-    def underscore(camel_cased_word)
+    def self.underscore(camel_cased_word)
       camel_cased_word.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
     end
   end

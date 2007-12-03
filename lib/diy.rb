@@ -2,7 +2,7 @@ require 'yaml'
 require 'set'
 
 module DIY
-  VERSION = '1.0.0'
+  VERSION = '1.0.1'
 	class Context
 
     class << self

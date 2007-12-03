@@ -499,6 +499,24 @@ class DIYTest < Test::Unit::TestCase
     assert_kind_of Animal::Cat, @diy['garfield'], "Garfield wrong"
   end
 
+  def test_should_let_you_use_namespaces_in_subcontexts
+    load_context "namespace/subcontext.yml"
+    @diy.build_everything
+    %w{road sky cat turtle}.each do |obj|
+      assert @diy.contains_object(obj), "Main context had no object '#{obj}'"
+    end
+    sky = @diy['sky']
+
+    @diy.within("aviary") do |subc|
+      assert subc.contains_object("bird"), "Sub context didn't have 'bird'"
+      assert subc.contains_object("lizard"), "Sub context didn't have 'lizard'"
+      bird = subc['bird']
+      lizard = subc['lizard']
+      assert_same sky, bird.sky, "Bird has wrong Sky"
+      assert_same bird, lizard.bird, "Lizard has wrong Bird"
+    end
+  end
+
   def test_should_raise_for_namespace_w_no_modules_named
     ex = assert_raises DIY::NamespaceError do
       load_context "namespace/no_module_specified.yml"

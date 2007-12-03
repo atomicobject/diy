@@ -24,3 +24,5 @@ ReleaseTagging.new do |t|
   t.version = DIY::VERSION
 end
 
+desc "Release package to Rubyforge, tag the release in svn, and publish documentation"
+task :release_full => [ :release, :tag_release, :publish_docs ] 

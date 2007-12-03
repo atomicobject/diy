@@ -1,126 +1,186 @@
-diy
+== DIY
 
 * http://rubyforge.org/projects/atomicobjectrb/
 * http://atomicobjectrb.rubyforge.org/diy
 
 == DESCRIPTION:
 
-DIY (Dependency Injection in Yaml) is a simple dependency injection library
+DIY (Dependency Injection in YAML) is a simple dependency injection library
 which focuses on declarative composition of objects through constructor injection.
-
-Currently, all objects that get components put into them must have a
-constructor that gets a hash with symbols as keys.
-Best used with constructor.rb
-
-Auto-naming and auto-library support is done.
-
-== FEATURES/PROBLEMS:
-  
-* Constructor-based dependency injection container using YAML input.
-
-== SYNOPSIS:
-
-=== A Simple Context
-
-The context is a hash specified in in a yaml file.  Each top-level key identifies
-an object.  When the context is created and queried for an object, by default, 
-the context will require a file with the same name:
-
-  require 'foo'
-
-Next, by default, it will call new on a class from the camel-cased name of the key:
-
-  Foo.new
-
-foo.rb:
-  class Foo; end
-
-context.yml:
-  ---
-  foo:
-  bar:
-
-  c = DIY::Context.from_file('context.yml')
-  c[:foo]  => <Foo:0x81eb0> 
-
-=== Specifying Ruby File to Require
-
-If the file the class resides in isn't named after they key:
-
-fun_stuff.rb:
-  class Foo; end
- 
-context.yml:
-   ---
-   foo:
-     lib: fun_stuff
-   bar:
-
-=== Constructor Arguments
-
-DIY allows specification of constructor arguments as hash key-value pairs
-using the <tt>compose</tt> directive.  
-
-foo.rb:
-  class Foo
-    def initialize(args)
-      @bar = args[:bar]
-      @other = args[:other]
-    end
-  end
- 
-context.yml:
-  ---
-  foo:
-    compose: bar, other
-  bar:
-  other:
-
-=== Using DIY with constructor.rb:
-
-foo.rb:
-  class Foo
-    constructor :bar, :other
-  end
-
-If the constructor argument names don't match up with the object keys
-in the context, they can be mapped explicitly.
-
- foo.rb:
-   class Foo
-     constructor :bar, :other
-   end
-
-context.yml:
-  ---
-  foo:
-    bar: my_bar
-    other: the_other_one
-  my_bar:
-  the_other_one:
-
-=== Non-singleton objects
- 
-Non-singletons will be re-instantiated each time they are needed.
-
-context.yml:
-  ---
-  foo:
-    singleton: false
-
-  bar:
-
-  engine:
-    compose: foo, bar
-
-== REQUIREMENTS:
-
-* rubygems
-* works best with constructor
 
 == INSTALL:
 
 * gem install diy
+
+== SYNOPSIS:
+
+=== Common Usage
+
+Author a YAML file that describes your objects and how they fit together.
+This means you're building a Hash whose keys are the object names, and whose
+values are Hashes that define the object. 
+
+The following context defines an automobile engine:
+
+context.yml:
+  ---
+  engine:
+    compose: throttle, block
+  throttle:
+    compose: cable, pedal
+  block:
+  cable:
+  pedal:
+
+In your code, use DIY to load the YAML, then access its parts:
+
+  context = DIY::Context.from_file('context.yml')
+  context[:engine]  => <Engine:0x81eb0> 
+
+This approach assumes:
+
+* You've got classes for Engine, Throttle, Block, Cable and Pedal
+* They're defined in engine.rb, throttle.rb, etc
+* The library files are in your load-path
+* Engine and Throttle both have a constructor that accepts a Hash.  The Hash 
+  will contain keys 'throttle', 'block' (for Engine) and 'cable, 'pedal' (for Throttle)
+  and the values will be references to their respective objects.
+* Block, Cable and Pedal all have default constructors that accept no arguments
+
+Sample code for Engine's constructor:
+
+  class Engine
+    def initialize(components)
+      @throttle = components['throttle']
+      @block = components['block']
+    end
+  end
+
+Writing code like that is repetetive; that's why we created the Constructor gem, which lets you
+specify object components using the "constructor" class method:
+
+* http://atomicobjectrb.rubyforge.org/constructor
+
+Using constructor, you can write Engine like this:
+
+  class Engine
+    constructor :throttle, :block
+  end
+
+=== Special Cases
+
+If your object has a lot of components (or they have big names) you can specify an array of component names
+as opposed to a comma-separated list:
+
+  engine:
+    compose:
+    - throttle
+    - block
+
+Sometimes you won't be able to rely on DIY's basic assumptions about class names and library files.
+
+* You can specify the 'class' option
+* You can specify the 'library' option.  If you do not, the library is inferred from the class name. 
+  (Eg, My::Train::Station will be sought in "my/train/station.rb"
+
+  engine:
+    class: FourHorse::Base
+    library: general_engines/base
+    compose: throttle, block
+
+If the Hash coming into your constructor needs to have some keys that do not exactly match the official
+object names, you can specify them one-by-one:
+
+  engine:
+    the_throttle: throttle
+    the_block: block
+
+=== Non-singleton objects
+ 
+Non-singletons are named objects that provide a new instance every time you ask for them.
+By default, DIY considers all objects to be singletons.  To override, use the "singleton" setting and
+set it to false:
+
+  foo:
+    singleton: false
+
+=== Sub-Contexts
+
+Sub-contexts are useful for creating isolated object networks that may need to be instantiated 
+zero or many times in your application.  Objects defined in subcontexts can reference "upward" to 
+their surroundings, as well as objects in the subcontext itself. 
+
+If you wanted to be able to make more than one Engine from the preceding examples, you might try:
+
+  ---
+  epa_regulations:
+
+  +automotive_plant:
+    engine:
+      compose: block, throttle, epa_regulations
+    block:
+    throttle:
+
+Each time you delve into the automotive_plant, you get a solar system of the defined objects.
+In this context, the objects are singleton-like.  The next time you invoke the subcontext, however,
+you'll be working with a fresh set of objects... another solar system with the same layout, so to speak.
+
+Subcontexts are not initialized until you call upon them, which you do using the "within" method:
+
+  context = DIY::Context.from_file('context.yml')
+  context.within('automotive_plant') do |plant|
+    puts plant[:engine]
+  end
+
+=== Direct Class References
+
+Occasionally you will have a class at your disposal that you'd like to provide directly as components
+to other objects (as opposed to getting _instances_ of that class, you want to reference the class itself, eg, 
+to use its factory methods).  Enter the "use_class_directly" flag:
+
+  ---
+  customer_order_finder:
+    class: CustomerOrder
+    use_class_directly: true
+
+This can be handy in Rails when you'd like to use some of class methods on an ActiveRecord subclass, but 
+you'd like to avoid direct ActiveRecord class usage in your code.  In this case, the customer_order_finder
+is actually the CustomerOrder class, and so, it has methods like "find" and "destroy_all".
+
+=== Namespace Convenience
+
+If you find yourself writing context entries like this:
+
+  ---
+  engine:
+    class: Car::Parts::Engine
+  throttle:
+    class: Car::Parts::Block
+  cable:
+    class: Car::Parts::Cable
+
+You can set the "assumed" module for a group of objects like this:
+
+  ---
+  using_namespace Car Parts:
+    engine:
+
+    throttle:
+
+    block:
+
+=== Preventing auto-requiring of library files
+
+Normally, DIY will "require" the library for an object just before it instantiates the object.
+If this is not desired (in Rails, auto-require can lead to library double-load issues), you
+can deactivate auto-require.  There is a global default setting (handled in code) and
+a per-object override (handled in the context YAML):
+
+  DIY::Context.auto_require = false 
+    
+  ---
+  engine:
+    auto_require: false
 
 == LICENSE:
 

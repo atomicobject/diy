@@ -1,15 +1,18 @@
 require 'yaml'
 require 'set'
 
-module DIY
+module DIY #:nodoc:#
   VERSION = '1.0.1'
 	class Context
 
     class << self
+      # Enable / disable automatic requiring of libraries. Default: true
       attr_accessor :auto_require
     end
     @auto_require = true
 
+    # Accepts a Hash defining the object context (usually loaded from objects.yml), and an additional
+    # Hash containing objects to inject into the context.
 		def initialize(context_hash, extra_inputs={})
 			raise "Nil context hash" unless context_hash
 			raise "Need a hash" unless context_hash.kind_of?(Hash)
@@ -35,16 +38,21 @@ module DIY
 		end
    
 
+    # Convenience: create a new DIY::Context by loading from a String (or open file handle.)
 		def self.from_yaml(io_or_string, extra_inputs={})
 			raise "nil input to YAML" unless io_or_string
 			Context.new(YAML.load(io_or_string), extra_inputs)
 		end
 
+    # Convenience: create a new DIY::Context by loading from the named file.
 		def self.from_file(fname, extra_inputs={})
 			raise "nil file name" unless fname
 			self.from_yaml(File.read(fname), extra_inputs)
 		end
 
+    # Return a reference to the object named.  If necessary, the object will 
+    # be instantiated on first use.  If the object is non-singleton, a new
+    # object will be produced each time.
 		def get_object(obj_name)
 			key = obj_name.to_s
 			obj = @cache[key]
@@ -61,6 +69,8 @@ module DIY
 		end
 		alias :[] :get_object
 
+    # Inject a named object into the Context.  This must be done before the Context has instantiated the 
+    # object in question.
 		def set_object(obj_name,obj)
 			key = obj_name.to_s
 			raise "object '#{key}' already exists in context" if @cache.keys.include?(key)
@@ -68,6 +78,7 @@ module DIY
 		end
 		alias :[]= :set_object
 
+    # Provide a listing of object names
 		def keys
 			(@defs.keys.to_set + @extra_inputs.keys.to_set).to_a
 		end
@@ -83,11 +94,16 @@ module DIY
 			yield context
 		end
 
+    # Returns true if the context contains an object with the given name
 		def contains_object(obj_name)
 			key = obj_name.to_s
 			@defs.keys.member?(key) or extra_inputs_has(key)
 		end
 
+    # Every top level object in the Context is instantiated.  This is especially useful for 
+    # systems that have "floating observers"... objects that are never directly accessed, who
+    # would thus never be instantiated by coincedence.  This does not build any subcontexts 
+    # that may exist.
 		def build_everything
 			@defs.keys.each { |k| self[k] }
 		end
@@ -200,7 +216,7 @@ module DIY
     end
 	end
 
-  class Namespace
+  class Namespace #:nodoc:#
     def initialize(str)
       # 'using_namespace Animal Reptile'
       parts = str.split(/\s+/)
@@ -212,9 +228,6 @@ module DIY
       end
 
       raise NamespaceError, "Namespace needs to indicate a module" if parts.empty?
-
-      # Ensure module structure exists
-#			parts.inject(Object) { |mod,const_name| mod.const_get(const_name) }
 
       @module_nest = parts
     end
@@ -317,7 +330,8 @@ module DIY
 		end
 	end
 
-  class NamespaceError < RuntimeError; end #:nodoc:#
+  class NamespaceError < RuntimeError #:nodoc:#
+  end 
 
   module Infl #:nodoc:#
     # Ganked this from Inflector:

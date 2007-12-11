@@ -2,7 +2,7 @@ require 'yaml'
 require 'set'
 
 module DIY #:nodoc:#
-  VERSION = '1.0.1'
+  VERSION = '1.0.2'
 	class Context
 
     class << self
@@ -161,7 +161,7 @@ module DIY #:nodoc:#
 			raise "No object definition for '#{key}'" unless obj_def
 
 			# If object def mentions a library, load it
-      require search_for_file(obj_def.library) if obj_def.library
+      require obj_def.library if obj_def.library
 
 			# Resolve all components for the object
 			arg_hash = {}
@@ -190,15 +190,6 @@ module DIY #:nodoc:#
 			cerr.set_backtrace(oops.backtrace)
 			raise cerr
 		end
-
-    def search_for_file(path_suffix)
-      path_suffix = path_suffix + '.rb' unless path_suffix =~ /\.rb$/
-      $LOAD_PATH.each do |root|
-        path = File.join(root, path_suffix)
-        return path if File.file? path
-      end
-      raise ConstructionError, "no such file to load -- #{path_suffix}"
-    end
 
 		def get_class_for_name_with_module_delimeters(class_name)
 			class_name.split(/::/).inject(Object) do |mod,const_name| mod.const_get(const_name) end

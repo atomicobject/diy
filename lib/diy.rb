@@ -161,7 +161,9 @@ module DIY #:nodoc:#
 			raise "No object definition for '#{key}'" unless obj_def
 
 			# If object def mentions a library, load it
-      require obj_def.library if obj_def.library
+			if !is_class_loaded?(obj_def.class_name) && obj_def.library
+        require obj_def.library
+      end
 
 			# Resolve all components for the object
 			arg_hash = {}
@@ -189,6 +191,15 @@ module DIY #:nodoc:#
 			cerr = ConstructionError.new(key,oops)
 			cerr.set_backtrace(oops.backtrace)
 			raise cerr
+		end
+		
+		def is_class_loaded?(class_name)
+		  begin
+  		  get_class_for_name_with_module_delimeters(class_name)
+  		  true
+  		rescue NameError
+  		  false
+  		end
 		end
 
 		def get_class_for_name_with_module_delimeters(class_name)

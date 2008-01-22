@@ -161,9 +161,7 @@ module DIY #:nodoc:#
 			raise "No object definition for '#{key}'" unless obj_def
 
 			# If object def mentions a library, load it
-			if !is_class_loaded?(obj_def.class_name) && obj_def.library
-        require obj_def.library
-      end
+      require obj_def.library	if obj_def.library
 
 			# Resolve all components for the object
 			arg_hash = {}
@@ -193,15 +191,6 @@ module DIY #:nodoc:#
 			raise cerr
 		end
 		
-		def is_class_loaded?(class_name)
-		  begin
-  		  get_class_for_name_with_module_delimeters(class_name)
-  		  true
-  		rescue NameError
-  		  false
-  		end
-		end
-
 		def get_class_for_name_with_module_delimeters(class_name)
 			class_name.split(/::/).inject(Object) do |mod,const_name| mod.const_get(const_name) end
 		end

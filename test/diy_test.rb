@@ -74,27 +74,7 @@ class DIYTest < Test::Unit::TestCase
     @diy.build_everything
     assert_not_nil @diy['foo/bar/qux'], "Should have got my qux (which is hiding in a couple modules)"
   end
-  
-  def test_do_not_require_class_library_file_if_class_is_already_loaded
-    eval <<-CODE
-      class ::Barman ; end
-    CODE
-    load_hash 'barman' => nil
-    @diy.build_everything
-  end
-
-  def test_foo
-    eval <<-CODE
-      module ::DiyTesting
-        class Barman
-        end
-      end
-    CODE
-    load_hash 'barman' => { 'class' => 'DiyTesting::Barman' }
-    @diy.build_everything
-  end
-  
-  
+    
   def test_keys
     load_context "dog/simple.yml"
     assert_equal %w|dog_model dog_presenter dog_view file_resolver other_thing|, @diy.keys.sort

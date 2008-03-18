@@ -16,13 +16,14 @@ Hoe.new('diy', DIY::VERSION) do |p|
   p.extra_deps << ['constructor', '>= 1.0.0']
 end
 
-load "../tools/tasks/homepage.rake"
+if File.exists?("../tools/")
+  load "../tools/tasks/homepage.rake"
+  load "../tools/tasks/release_tagging.rake"
+  ReleaseTagging.new do |t|
+    t.package = "diy"
+    t.version = DIY::VERSION
+  end
 
-load "../tools/tasks/release_tagging.rake"
-ReleaseTagging.new do |t|
-  t.package = "diy"
-  t.version = DIY::VERSION
+  desc "Release package to Rubyforge, tag the release in svn, and publish documentation"
+  task :release_full => [ :release, :tag_release, :publish_docs ] 
 end
-
-desc "Release package to Rubyforge, tag the release in svn, and publish documentation"
-task :release_full => [ :release, :tag_release, :publish_docs ] 

@@ -255,7 +255,7 @@ module DIY #:nodoc:#
 		end
 	end
   
-  class MethodDef
+  class MethodDef #:nodoc:
     attr_accessor :name, :object, :method
     
     def initialize(opts)

@@ -37,6 +37,7 @@ test/files/donkey/foo/bar/qux.rb
 test/files/fud/objects.yml
 test/files/fud/toy.rb
 test/files/functions/invalid_method.yml
+test/files/functions/method_extractor.rb
 test/files/functions/nonsingleton_objects.yml
 test/files/functions/objects.yml
 test/files/functions/thing.rb

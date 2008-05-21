@@ -564,6 +564,12 @@ class DIYTest < Test::Unit::TestCase
     assert_not_equal(@diy['build_thing'], @diy['thing_builder'].method(:build))
   end
   
+  def test_composing_bounded_methods_into_other_objects
+    load_context "functions/objects.yml"
+    @diy.build_everything
+    assert_same(@diy['build_thing'], @diy['things_builder'].build_thing)
+  end
+  
   def test_raises_construction_error_if_invalid_method_specified
     load_context "functions/invalid_method.yml"
     assert_raises DIY::ConstructionError do

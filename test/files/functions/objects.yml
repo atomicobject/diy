@@ -5,3 +5,7 @@ method_extractor:
 method build_thing:
     object: thing_builder
     method: build
+    
+things_builder:
+  compose:
+    - build_thing

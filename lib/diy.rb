@@ -64,7 +64,8 @@ module DIY #:nodoc:#
 			unless obj
 			  case @defs[key]
 		    when MethodDef
-		      @cache[key] = construct_method(key)
+		      obj = construct_method(key)
+		      @cache[key] = obj
 		    else
 		      obj = construct_object(key)
   				@cache[key] = obj if @defs[key].singleton?

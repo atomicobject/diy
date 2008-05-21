@@ -183,8 +183,9 @@ a per-object override (handled in the context YAML):
     auto_require: false
 
 === Method Directive
-  This introduces the concept of first class methods. An object can now be constructed with a method bound to
-  a particular object in the diy context.
+
+This introduces the concept of first class methods. An object can now be constructed with a method bound to
+a particular object in the diy context.
   
   ---
   trinket_builder:

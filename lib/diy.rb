@@ -135,7 +135,7 @@ module DIY #:nodoc:#
           # namespace: use a module(s) prefix for the classname of contained object defs
           # NOTE: namespacing is NOT scope... it's just a convenient way to setup class names for a group of objects.
           get_defs_from info, parse_namespace(name)
-        when /^method/
+        when /^method\s/
           key_name = name.gsub(/^method\s/, "")
           @defs[key_name] = MethodDef.new(:name => key_name, 
                                       :object => info['object'], 

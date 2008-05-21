@@ -24,7 +24,7 @@ module DIY #:nodoc:#
 
 			# store extra inputs
 			if extra_inputs.kind_of?(Hash)
-				@extra_inputs = {}
+				@extra_inputs= {}
 				extra_inputs.each { |k,v| @extra_inputs[k.to_s] = v } # smooth out the names
 			else
 				@extra_inputs = extra_inputs
@@ -62,8 +62,13 @@ module DIY #:nodoc:#
 				end
 			end
 			unless obj
-				obj = construct_object(key)
-				@cache[key] = obj if @defs[key].singleton?
+			  case @defs[key]
+		    when MethodDef
+		      @cache[key] = construct_method(key)
+		    else
+		      obj = construct_object(key)
+  				@cache[key] = obj if @defs[key].singleton?
+		    end
 			end
 			obj
 		end
@@ -130,7 +135,11 @@ module DIY #:nodoc:#
           # namespace: use a module(s) prefix for the classname of contained object defs
           # NOTE: namespacing is NOT scope... it's just a convenient way to setup class names for a group of objects.
           get_defs_from info, parse_namespace(name)
-
+        when /^method/
+          key_name = name.gsub(/^method\s/, "")
+          @defs[key_name] = MethodDef.new(:name => key_name, 
+                                      :object => info['object'], 
+                                      :method => info['method'])
         else 
           # Normal object def
           info ||= {}
@@ -154,12 +163,19 @@ module DIY #:nodoc:#
       end
     end
 
-
+    
+    def construct_method(key)
+      method_definition = @defs[key]
+      object = get_object(method_definition.object)
+      return object.method(method_definition.method)
+    rescue Exception => oops
+      build_and_raise_construction_error(key, oops)
+    end
+    
 		def construct_object(key)
 			# Find the object definition
 			obj_def = @defs[key]
 			raise "No object definition for '#{key}'" unless obj_def
-
 			# If object def mentions a library, load it
       require obj_def.library	if obj_def.library
 
@@ -186,11 +202,15 @@ module DIY #:nodoc:#
 				return big_c.new
 			end
 		rescue Exception => oops
-			cerr = ConstructionError.new(key,oops)
+		  build_and_raise_construction_error(key, oops)
+		end
+		
+		def build_and_raise_construction_error(key, oops)
+		  cerr = ConstructionError.new(key,oops)
 			cerr.set_backtrace(oops.backtrace)
 			raise cerr
 		end
-		
+			
 		def get_class_for_name_with_module_delimeters(class_name)
 			class_name.split(/::/).inject(Object) do |mod,const_name| mod.const_get(const_name) end
 		end
@@ -206,7 +226,7 @@ module DIY #:nodoc:#
       Namespace.new(str)
     end
 	end
-
+  
   class Namespace #:nodoc:#
     def initialize(str)
       # 'using_namespace Animal Reptile'
@@ -234,7 +254,15 @@ module DIY #:nodoc:#
 			@name = obj_name
 		end
 	end
-
+  
+  class MethodDef
+    attr_accessor :name, :object, :method
+    
+    def initialize(opts)
+      @name, @object, @method = opts[:name], opts[:object], opts[:method]
+    end
+  end
+  
 	class ObjectDef #:nodoc:
 		attr_accessor :name, :class_name, :library, :components
 		def initialize(opts)

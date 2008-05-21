@@ -7,7 +7,7 @@ class DIYTest < Test::Unit::TestCase
 
   def setup
     # Add load paths:
-    %w|gnu dog cat yak donkey goat horse fud non_singleton namespace|.each do |p|
+    %w|gnu dog cat yak donkey goat horse fud non_singleton namespace functions|.each do |p|
       libdir = path_to_test_file(p)
       $: << libdir unless $:.member?(libdir)
     end
@@ -492,7 +492,7 @@ class DIYTest < Test::Unit::TestCase
     assert_same sky, bird.sky, "Bird has wrong Sky"
     assert_same bird, lizard.bird, "Lizard has wrong Bird"
   end
-
+  
   def test_should_combine_a_given_class_name_with_the_namespace
     load_context "namespace/class_name_combine.yml"
     assert_not_nil @diy['garfield'], "No garfield"
@@ -533,6 +533,44 @@ class DIYTest < Test::Unit::TestCase
     assert_match(/no such file to load -- fuzzy_creature\/bird/, ex.message)
   end
 
+  def test_should_be_able_define_and_access_bounded_methods
+    load_context "functions/objects.yml"
+    @diy.build_everything
+    build_thing = @diy['build_thing']
+    
+    assert_not_nil build_thing, "should not be nil"
+    assert_kind_of(Method, build_thing)
+    assert_same(build_thing, @diy['build_thing'])
+  end
+  
+  def test_bounded_method_can_be_used
+    load_context "functions/objects.yml"
+    @diy.build_everything
+    build_thing = @diy['build_thing']
+    
+    thing = build_thing["the name", "flying"]
+    
+    assert_equal("the name", thing.name)
+    assert_equal("flying", thing.ability)
+  end
+  
+  def test_building_bounded_method_uses_object_in_diy_context_correctly
+    load_context "functions/objects.yml"
+    @diy.build_everything
+    assert_equal(@diy['build_thing'], @diy['thing_builder'].method(:build))
+    
+    load_context "functions/nonsingleton_objects.yml"
+    @diy.build_everything
+    assert_not_equal(@diy['build_thing'], @diy['thing_builder'].method(:build))
+  end
+  
+  def test_raises_construction_error_if_invalid_method_specified
+    load_context "functions/invalid_method.yml"
+    assert_raises DIY::ConstructionError do
+      @diy.build_everything
+    end
+  end
+  
   #
   # HELPERS
   #

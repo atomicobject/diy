@@ -1,7 +1,12 @@
-CONSTRUCTOR_VERSION = '1.0.0'
+CONSTRUCTOR_VERSION = '1.0.2' #:nodoc:#
 
-class Class
-  def constructor(*attrs)
+class Class #:nodoc:#
+  def constructor(*attrs, &block)
+    call_block = ''
+    if block_given?
+      @constructor_block = block
+      call_block = 'self.instance_eval(&self.class.constructor_block)'
+    end
     # Look for embedded options in the listing:
     opts = attrs.find { |a| a.kind_of?(Hash) and attrs.delete(a) } 
     do_acc = opts.nil? ? false : opts[:accessors] == true
@@ -10,6 +15,8 @@ class Class
 
     # Incorporate superclass's constructor keys, if our superclass
     if superclass.constructor_keys
+      similar_keys = superclass.constructor_keys & attrs
+      raise "Base class already has keys #{similar_keys.inspect}" unless similar_keys.empty?
       attrs = [attrs,superclass.constructor_keys].flatten
     end
     # Generate ivar assigner code lines
@@ -73,6 +80,7 @@ class Class
         #{validation_code}
         #{assigns}
         setup if respond_to?(:setup)
+        #{call_block}
       end
     }
 
@@ -81,13 +89,16 @@ class Class
   end
 
   # Access the constructor keys for this class
-  def constructor_keys
-    @_ctor_keys ||= nil
+  def constructor_keys; @_ctor_keys ||=[]; end
+
+  def constructor_block #:nodoc:#
+    @constructor_block
   end
+
 end
 
 # Fancy validation exception, based on missing and extraneous keys.
-class ConstructorArgumentError < RuntimeError
+class ConstructorArgumentError < RuntimeError #:nodoc:#
   def initialize(missing,rejected=[])
     err_msg = ''
     if missing.size > 0

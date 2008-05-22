@@ -42,6 +42,7 @@ test/files/functions/nonsingleton_objects.yml
 test/files/functions/objects.yml
 test/files/functions/thing.rb
 test/files/functions/thing_builder.rb
+test/files/functions/things_builder.rb
 test/files/gnu/objects.yml
 test/files/gnu/thinger.rb
 test/files/goat/base.rb

@@ -59,17 +59,16 @@ module DIY #:nodoc:#
 			unless obj
 				if extra_inputs_has(key)
 					obj = @extra_inputs[key]
+        else
+          case @defs[key]
+          when MethodDef
+            obj = construct_method(key)
+            @cache[key] = obj
+          else
+            obj = construct_object(key)
+            @cache[key] = obj if @defs[key].singleton?
+          end
 				end
-			end
-			unless obj
-			  case @defs[key]
-		    when MethodDef
-		      obj = construct_method(key)
-		      @cache[key] = obj
-		    else
-		      obj = construct_object(key)
-  				@cache[key] = obj if @defs[key].singleton?
-		    end
 			end
 			obj
 		end

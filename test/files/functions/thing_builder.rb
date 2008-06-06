@@ -17,5 +17,9 @@ class ThingBuilder
   
   def build(name, ability)
     Thing.new(:name => name, :ability => ability)
+  end
+  
+  def build_default
+    Thing.new(:name => "Thing", :ability => "nothing")
   end  
 end

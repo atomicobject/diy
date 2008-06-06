@@ -577,6 +577,23 @@ class DIYTest < Test::Unit::TestCase
     end
   end
   
+  def test_can_optionally_attach_method_to_other_objects_in_context
+    load_context "functions/objects.yml"
+    @diy.build_everything
+    
+    thing = @diy['attached_things_builder'].build_thing("the name", "flying")
+    assert_kind_of(Thing, thing)
+    assert_equal("the name", thing.name)
+    assert_equal("flying", thing.ability)    
+    
+    ["attached_things_builder", "things_builder"].each do |key|
+      thing = @diy[key].build_default_thing
+      assert_kind_of(Thing, thing)
+      assert_equal("Thing", thing.name)
+      assert_equal("nothing", thing.ability)    
+    end
+  end
+  
   #
   # HELPERS
   #

@@ -139,7 +139,8 @@ module DIY #:nodoc:#
           key_name = name.gsub(/^method\s/, "")
           @defs[key_name] = MethodDef.new(:name => key_name, 
                                       :object => info['object'], 
-                                      :method => info['method'])
+                                      :method => info['method'],
+                                      :attach => info['attach'])
         else 
           # Normal object def
           info ||= {}
@@ -167,7 +168,22 @@ module DIY #:nodoc:#
     def construct_method(key)
       method_definition = @defs[key]
       object = get_object(method_definition.object)
-      return object.method(method_definition.method)
+      method = object.method(method_definition.method)
+      
+      unless method_definition.attach.nil?
+        instance_var_name = "@__diy_#{method_definition.object}"
+        
+        method_definition.attach.each do |object_key|
+          get_object(object_key).instance_eval do
+            instance_variable_set(instance_var_name, object)
+            eval %|def #{key}(*args)
+              #{instance_var_name}.#{method_definition.method}(*args)
+            end|
+          end
+        end      
+      end
+      
+      return method
     rescue Exception => oops
       build_and_raise_construction_error(key, oops)
     end
@@ -256,10 +272,10 @@ module DIY #:nodoc:#
 	end
   
   class MethodDef #:nodoc:
-    attr_accessor :name, :object, :method
+    attr_accessor :name, :object, :method, :attach
     
     def initialize(opts)
-      @name, @object, @method = opts[:name], opts[:object], opts[:method]
+      @name, @object, @method, @attach = opts[:name], opts[:object], opts[:method], opts[:attach]
     end
   end
   

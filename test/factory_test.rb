@@ -25,10 +25,12 @@ class FactoryTest < Test::Unit::TestCase
     cat_factory = @diy.get_object(:cat_factory)
     assert_not_nil cat_factory
 
-    cat = cat_factory.create
+    cat = cat_factory.create('a', 'b')
 
     assert cat.is_a?(Kitten)
     assert_equal "meow", cat.meow
+    assert_equal 'a', cat.a
+    assert_equal 'b', cat.b
   end
 
   def test_creates_factory_with_autorequire

@@ -28,8 +28,8 @@ module DIY #:nodoc:#
       @class_to_create = clazz
     end
 
-    def create
-      @class_to_create.new
+    def create *args
+      @class_to_create.new *args
     end
   end
 end

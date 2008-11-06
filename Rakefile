@@ -1,6 +1,9 @@
 require 'rubygems'
 require 'hoe'
-require './lib/diy.rb'
+
+
+$: << "lib"
+require 'diy.rb'
 
 task :default => [ :test ]
 

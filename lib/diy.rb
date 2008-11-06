@@ -1,3 +1,4 @@
+require 'diy/factory.rb'
 require 'yaml'
 require 'set'
 
@@ -63,6 +64,8 @@ module DIY #:nodoc:#
           case @defs[key]
           when MethodDef
             obj = construct_method(key)
+          when FactoryDef
+            obj = construct_factory(key)
             @cache[key] = obj
           else
             obj = construct_object(key)
@@ -125,6 +128,23 @@ module DIY #:nodoc:#
 
     def get_defs_from(hash, namespace=nil)
       hash.each do |name,info|
+        
+        # see if we are building a factory
+        if info and info.has_key?('builds')
+          unless info.has_key?('auto_require')
+            info['auto_require'] = self.class.auto_require
+          end
+
+          if namespace
+            info['builds'] = namespace.build_classname(info['builds'])
+          end
+          @defs[name] = FactoryDef.new({:name => name,
+                                       :target => info['builds'],
+                                       :library => info['library'],
+                                       :auto_require => info['auto_require']})
+          next
+        end
+
         name = name.to_s
         case name
         when /^\+/ 
@@ -164,7 +184,6 @@ module DIY #:nodoc:#
       end
     end
 
-    
     def construct_method(key)
       method_definition = @defs[key]
       object = get_object(method_definition.object)

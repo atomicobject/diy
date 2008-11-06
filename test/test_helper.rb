@@ -36,4 +36,20 @@ class Test::Unit::TestCase
 			@_tracked_tests[msym] = true
 		end
 	end
+
+  #
+  # HELPERS
+  #
+  def path_to_test_file(fname)
+    path_to("/files/#{fname}")
+  end
+
+  def load_context(file_name)
+    hash = YAML.load(File.read(path_to_test_file(file_name)))
+    load_hash(hash)
+  end
+
+  def load_hash(hash)
+    @diy = DIY::Context.new(hash)
+  end
 end

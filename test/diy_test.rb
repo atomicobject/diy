@@ -540,7 +540,7 @@ class DIYTest < Test::Unit::TestCase
     
     assert_not_nil build_thing, "should not be nil"
     assert_kind_of(Method, build_thing)
-    assert_same(build_thing, @diy['build_thing'])
+    assert_equal(build_thing, @diy['build_thing'])
   end
   
   def test_bounded_method_can_be_used
@@ -567,7 +567,7 @@ class DIYTest < Test::Unit::TestCase
   def test_composing_bounded_methods_into_other_objects
     load_context "functions/objects.yml"
     @diy.build_everything
-    assert_same(@diy['build_thing'], @diy['things_builder'].build_thing)
+    assert_equal(@diy['build_thing'], @diy['things_builder'].build_thing)
   end
   
   def test_raises_construction_error_if_invalid_method_specified
@@ -597,19 +597,6 @@ class DIYTest < Test::Unit::TestCase
   #
   # HELPERS
   #
-  def path_to_test_file(fname)
-    path_to("/files/#{fname}")
-  end
-
-  def load_context(file_name)
-    hash = YAML.load(File.read(path_to_test_file(file_name)))
-    load_hash(hash)
-  end
-
-  def load_hash(hash)
-    @diy = DIY::Context.new(hash)
-  end
-
   def check_dog_objects(context)
     assert_not_nil context, "nil context"
     names = %w|dog_presenter dog_model dog_view file_resolver|

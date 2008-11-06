@@ -27,7 +27,7 @@ class FactoryTest < Test::Unit::TestCase
 
     cat = cat_factory.create
 
-    assert cat.is_a?(Cat)
+    assert cat.is_a?(Kitten)
     assert_equal "meow", cat.meow
   end
 

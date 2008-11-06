@@ -1,4 +1,4 @@
-class Cat
+class Kitten
   def meow
     "meow"
   end

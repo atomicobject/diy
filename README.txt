@@ -182,6 +182,22 @@ a per-object override (handled in the context YAML):
   engine:
     auto_require: false
 
+=== Factories
+
+It is possible to create factories automatically with DIY:
+
+  ---
+  car_dealer:
+    compose: car_factory
+
+  car_factory:
+    builds: car
+
+Then you can use the factory to easily build objects:
+
+  context = DIY::Context.from_file('context.yml')
+  context[:car_factory].create  => <Car:0x81eb0> 
+
 === Method Directive
 
 This introduces the concept of first class methods. An object can now be constructed with a method object 

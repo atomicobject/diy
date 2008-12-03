@@ -128,6 +128,9 @@ module DIY #:nodoc:#
 
     def get_defs_from(hash, namespace=nil)
       hash.each do |name,info|
+        # we modify the info hash below so it's important to have a new
+        # instance to play with
+        info = info.dup if info
         
         # see if we are building a factory
         if info and info.has_key?('builds')

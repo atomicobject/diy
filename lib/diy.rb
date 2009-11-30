@@ -3,7 +3,7 @@ require 'yaml'
 require 'set'
 
 module DIY #:nodoc:#
-  VERSION = '1.1.1'
+  VERSION = '1.1.2'
   class Context
 
     class << self

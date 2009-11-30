@@ -1,3 +1,7 @@
+== 1.1.2 / 2009-11-30
+  * Converted to Jeweler for gem packaging
+  * diy/factory.rb was somehow missing from the 1.1.1 gem on gemcutter. This has been fixed as part of the Jeweler changeover.
+
 == 1.1.1 / 2008-05-21
   * Fixed bug that did not allow a method to be properly injected into an object
 

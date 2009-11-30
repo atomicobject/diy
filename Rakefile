@@ -1,22 +1,21 @@
 require 'rubygems'
-require 'hoe'
-
+require 'jeweler'
 
 $: << "lib"
 require 'diy.rb'
 
 task :default => [ :test ]
 
-Hoe.new('diy', DIY::VERSION) do |p|
-  p.rubyforge_name = 'atomicobjectrb'
-  p.author = 'Atomic Object'
-  p.email = 'dev@atomicobject.com'
-  p.summary = 'Constructor-based dependency injection container using YAML input.'
-  p.description = p.paragraphs_of('README.txt', 3).join("\n\n")
-  p.url = p.paragraphs_of('README.txt', 0).first.split(/\n/)[1..-1]
-  p.changes = p.paragraphs_of('History.txt', 0..1).join("\n\n")
-  p.test_globs = 'test/*_test.rb'
-  p.extra_deps << ['constructor', '>= 1.0.0']
+Jeweler::Tasks.new do |gemspec|
+  gemspec.name = 'diy'
+  gemspec.version = DIY::VERSION
+  gemspec.summary = 'Constructor-based dependency injection container using YAML input.'
+  gemspec.description = 'Constructor-based dependency injection container using YAML input.'
+  gemspec.homepage = 'http://atomicobject.github.com'
+  gemspec.authors = 'Atomic Object'
+  gemspec.email = 'dev@atomicobject.com'
+  gemspec.test_files = FileList['test/*_test.rb']
+  gemspec.add_dependency 'constructor', '>= 1.0.0'
 end
 
 if File.exists?("../tools/")

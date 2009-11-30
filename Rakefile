@@ -17,15 +17,3 @@ Jeweler::Tasks.new do |gemspec|
   gemspec.test_files = FileList['test/*_test.rb']
   gemspec.add_dependency 'constructor', '>= 1.0.0'
 end
-
-if File.exists?("../tools/")
-  load "../tools/tasks/homepage.rake"
-  load "../tools/tasks/release_tagging.rake"
-  ReleaseTagging.new do |t|
-    t.package = "diy"
-    t.version = DIY::VERSION
-  end
-
-  desc "Release package to Rubyforge, tag the release in svn, and publish documentation"
-  task :release_full => [ :release, :tag_release, :publish_docs ] 
-end

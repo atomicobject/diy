@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "TODO.txt",
+     "diy.gemspec",
      "homepage/Notes.txt",
      "homepage/Rakefile",
      "homepage/diy_example.png",

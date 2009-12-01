@@ -1,7 +1,6 @@
 == DIY
 
 * http://atomicobject.github.com/diy
-* http://gemcutter.org/gems/diy
 
 == DESCRIPTION:
 
@@ -58,8 +57,6 @@ Sample code for Engine's constructor:
 
 Writing code like that is repetetive; that's why we created the Constructor gem, which lets you
 specify object components using the "constructor" class method:
-
-* http://atomicobjectrb.rubyforge.org/constructor
 
 Using constructor, you can write Engine like this:
 

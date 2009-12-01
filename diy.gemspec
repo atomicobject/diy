@@ -9,9 +9,9 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Atomic Object"]
-  s.date = %q{2009-11-30}
+  s.date = %q{2009-12-01}
   s.description = %q{Constructor-based dependency injection container using YAML input.}
-  s.email = %q{dev@atomicobject.com}
+  s.email = %q{github@atomicobject.com}
   s.extra_rdoc_files = [
     "README.rdoc"
   ]
@@ -105,7 +105,7 @@ Gem::Specification.new do |s|
      "test/files/yak/sub_sub_context_test.yml",
      "test/test_helper.rb"
   ]
-  s.homepage = %q{http://atomicobject.github.com}
+  s.homepage = %q{http://atomicobject.github.com/diy}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.5}

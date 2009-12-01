@@ -25,6 +25,9 @@ begin
     gemspec.test_files = FileList['test/*_test.rb']
     gemspec.add_dependency 'constructor', '>= 1.0.0'
   end
+
+  Jeweler::GemcutterTasks.new
+
 rescue LoadError
   puts "(jeweler not installed)"
 end

@@ -11,9 +11,9 @@ Jeweler::Tasks.new do |gemspec|
   gemspec.version = DIY::VERSION
   gemspec.summary = 'Constructor-based dependency injection container using YAML input.'
   gemspec.description = 'Constructor-based dependency injection container using YAML input.'
-  gemspec.homepage = 'http://atomicobject.github.com'
+  gemspec.homepage = 'http://atomicobject.github.com/diy'
   gemspec.authors = 'Atomic Object'
-  gemspec.email = 'dev@atomicobject.com'
+  gemspec.email = 'github@atomicobject.com'
   gemspec.test_files = FileList['test/*_test.rb']
   gemspec.add_dependency 'constructor', '>= 1.0.0'
 end

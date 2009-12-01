@@ -1,7 +1,7 @@
 == DIY
 
-* http://atomicobjectrb.rubyforge.org/diy
-* http://rubyforge.org/projects/atomicobjectrb/
+* http://atomicobject.github.com/diy
+* http://gemcutter.org/gems/diy
 
 == DESCRIPTION:
 

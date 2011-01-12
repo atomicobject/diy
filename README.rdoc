@@ -211,8 +211,8 @@ bound to a particular object in the diy context.
 == Authors
 
 * David Crosby (crosby@atomicobject.com)
-* © 2007-2011 [Atomic Object](http://www.atomicobject.com/)
-* More Atomic Object [open source](http://www.atomicobject.com/pages/Software+Commons) projects
+* © 2007-2011 {Atomic Object}[http://www.atomicobject.com]
+* More Atomic Object {open source}[http://www.atomicobject.com/pages/Software+Commons] projects
 
 == License
 
